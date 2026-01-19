@@ -1,0 +1,1 @@
+python3 indexing/index_repo.py /Users/nilgolan/Projects/gateway-service ./indexes/gateway-service
