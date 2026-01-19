@@ -2,6 +2,8 @@ import os
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import chromadb
 from llama_index.core import SimpleDirectoryReader, StorageContext, VectorStoreIndex, Settings
 from llama_index.vector_stores.chroma import ChromaVectorStore
@@ -43,7 +45,7 @@ def main(repo_path: str, index_dir: str):
         model_name=EMBEDDING_MODEL,
         base_url=OLLAMA_BASE_URL,
     )
-    
+
     VectorStoreIndex.from_documents(docs, storage_context=storage)
     storage.persist(persist_dir=index_dir)
 
@@ -54,4 +56,3 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         raise SystemExit("Usage: python index_repo.py /path/to/repo /path/to/index_dir")
     main(sys.argv[1], sys.argv[2])
-

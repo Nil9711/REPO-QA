@@ -5,28 +5,25 @@ from typing import Optional
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.core.schema import NodeWithScore, QueryBundle
 
-# Add parent directory to path for config import
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config import DEPLOYMENT_FILE_PATTERNS
 
 
 def should_exclude_file(file_path: str) -> bool:
-    """Check if file matches deployment/config patterns."""
     path_lower = file_path.lower()
     return any(pattern in path_lower for pattern in DEPLOYMENT_FILE_PATTERNS)
 
 
 class ExcludeDeploymentFilesPostprocessor(BaseNodePostprocessor):
-    """Filter out deployment and Docker configuration files from query results."""
-    
+
     def _postprocess_nodes(
         self, nodes: list[NodeWithScore], query_bundle: Optional[QueryBundle] = None
     ) -> list[NodeWithScore]:
         return [
             node for node in nodes
             if not should_exclude_file(
-                (node.node.metadata or {}).get("file_path") or 
+                (node.node.metadata or {}).get("file_path") or
                 (node.node.metadata or {}).get("filename") or ""
             )
         ]
