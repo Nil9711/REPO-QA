@@ -12,4 +12,4 @@ REPO_PATH="$1"
 REPO_NAME="$2"
 INDEX_DIR="./indexes/$REPO_NAME"
 
-python3 indexing/index_repo.py "$REPO_PATH" "$INDEX_DIR"
+.venv/bin/python3 indexing/index_repo.py "$REPO_PATH" "$INDEX_DIR"

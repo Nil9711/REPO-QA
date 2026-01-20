@@ -26,3 +26,4 @@ prompts_history/
 # Environment variables
 .env
 .env.local
+.claude/
