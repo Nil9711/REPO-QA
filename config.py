@@ -6,7 +6,8 @@ LLM_TIMEOUT = 120.0
 SIMILARITY_TOP_K = 12
 
 EXCLUDE_DIRS = {".git", "node_modules", "dist", "build", ".next", ".venv", "__pycache__"}
-INDEXED_FILE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".go", ".java", ".md", ".json", ".yml", ".yaml"}
+INDEXED_FILE_EXTENSIONS = {".ts", ".tsx", ".md", ".json"}
+EXCLUDED_FILE_PATTERNS = [".module.ts", ".enum.ts", ".enum.js", ".dto.ts", ".dto.js"]
 
 DEPLOYMENT_FILE_PATTERNS = [
     'dockerfile',

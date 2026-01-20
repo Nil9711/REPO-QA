@@ -69,7 +69,7 @@ def route_question(question: str) -> tuple[str, float]:
 
 
 def query_with_mode(query_engine, collection, question: str, mode: str) -> tuple[str, list]:
-    authoritative_context = get_authoritative_context(mode, collection)
+    authoritative_context, authoritative_sources = get_authoritative_context(mode, collection)
 
     if mode == "deep_dive":
         response = query_engine.query(question)
@@ -100,7 +100,9 @@ def query_with_mode(query_engine, collection, question: str, mode: str) -> tuple
     llm = Settings.llm
     final_response = llm.complete(final_prompt)
 
-    sources = extract_sources(response) if response else []
+    # Combine authoritative sources with retrieved sources
+    retrieved_sources = extract_sources(response) if response else []
+    sources = authoritative_sources + retrieved_sources
     return str(final_response), sources
 
 
