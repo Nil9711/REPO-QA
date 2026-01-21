@@ -142,6 +142,21 @@ def extract_sources(response) -> list:
     return sources
 
 
+def deduplicate_sources(sources: list) -> list:
+    """Keep unique files, preferring highest score per file."""
+    seen = {}
+    for src in sources:
+        path = src["file_path"]
+        score = src.get("score")
+        if path not in seen:
+            seen[path] = src
+        elif score is not None:
+            existing_score = seen[path].get("score")
+            if existing_score is None or score > existing_score:
+                seen[path] = src
+    return list(seen.values())
+
+
 def save_prompt_history(question: str, answer: str, sources: list, index_dir: str, mode: str = None, confidence: float = None):
     history_dir = Path(__file__).parent.parent / "prompts_history"
     history_dir.mkdir(exist_ok=True)
@@ -175,6 +190,7 @@ def main(index_dir: str, question: str) -> str:
     qe, collection = build_query_engine(index_dir)
 
     answer, sources = query_with_mode(qe, collection, question, mode)
+    sources = deduplicate_sources(sources)
 
     print("\nANSWER:\n")
     print(answer)
@@ -184,7 +200,7 @@ def main(index_dir: str, question: str) -> str:
         for i, source in enumerate(sources, start=1):
             file_path = source["file_path"]
             score = source.get("score")
-            print(f"{i}. {file_path}" + (f" (score={score:.3f})" if score is not None else ""))
+            print(f"{i}. {file_path}" + (f" (score={score:.4g})" if score is not None else ""))
     else:
         print("No sources returned.")
 
