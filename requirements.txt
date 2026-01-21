@@ -14,3 +14,7 @@ llama-index-llms-ollama
 # Code parsing
 tree-sitter>=0.21.0,<0.22.0
 tree-sitter-languages>=1.10.0
+
+# Discord
+discord.py
+python-dotenv

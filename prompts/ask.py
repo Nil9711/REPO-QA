@@ -169,7 +169,7 @@ def save_prompt_history(question: str, answer: str, sources: list, index_dir: st
     print(f"\n[Saved to {filepath}]")
 
 
-def main(index_dir: str, question: str):
+def main(index_dir: str, question: str) -> str:
     mode, confidence = route_question(question)
 
     qe, collection = build_query_engine(index_dir)
@@ -189,6 +189,8 @@ def main(index_dir: str, question: str):
         print("No sources returned.")
 
     save_prompt_history(question, answer, sources, index_dir, mode, confidence)
+
+    return answer
 
 
 if __name__ == "__main__":
