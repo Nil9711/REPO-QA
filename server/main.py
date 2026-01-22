@@ -21,8 +21,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Path to indexes directory (relative to server/)
-INDEXES_DIR = Path(__file__).parent.parent / "indexes"
+# Path to indexes directory
+# Use environment variable if set, otherwise calculate relative path
+INDEXES_DIR = Path(os.getenv("INDEXES_DIR", str(Path(__file__).parent.parent / "indexes")))
 
 
 def get_index_path(index_name: str) -> Path:
@@ -105,7 +106,11 @@ def ask(request: AskRequest):
             confidence=confidence
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        import traceback
+        error_detail = f"{type(e).__name__}: {str(e)}"
+        print(f"Error in /ask: {error_detail}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @app.get("/health")

@@ -26,7 +26,7 @@ Testing/Verification
 - `docker run --env-file .env -p 8000:8000 -v $(pwd)/indexes:/app/indexes repo-qa`
 - Visit http://localhost:8000 to load UI; call /health and /ask
 
-Open Questions
-- Should indexes be baked into the image or mounted via volume? (default: volume)
-- Desired image size vs. convenience (multi-stage keeps runtime small)
-
+Decisions
+- Indexes mounted via volume (default) to keep data persistent and avoid bloating the image.
+- Multi-stage Dockerfile; acceptable if the build stage is large, but keep the runtime stage lean.
+- Provide both a Dockerfile (single image with client + server) and docker-compose for local use.

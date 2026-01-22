@@ -1,0 +1,51 @@
+# Python
+server/venv/
+server/__pycache__/
+server/**/__pycache__/
+server/**/*.pyc
+server/**/*.pyo
+server/**/*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Node
+client/node_modules/
+client/dist/
+
+# Indexes (mounted as volume)
+indexes/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+server/prompts_history/
+
+# Documentation
+md/
+README.md
+
+# Scripts
+scripts/
