@@ -4,10 +4,13 @@
 
 ```
 REPO-QA/
-├── client/          # React + Vite + shadcn + Tailwind frontend
-├── server/          # FastAPI backend
-├── indexes/         # ChromaDB vector indexes (shared)
-└── listeners/       # Discord bot (optional)
+├── client/              # React + Vite + shadcn + Tailwind frontend
+├── server/              # FastAPI backend (source of truth)
+│   ├── indexing/       # Repository indexing logic
+│   ├── prompts/        # Q&A and routing logic
+│   └── listeners/      # Discord bot (optional)
+├── indexes/             # ChromaDB vector indexes (runtime data)
+└── scripts/             # CLI helper scripts
 ```
 
 ## Backend Setup
@@ -105,15 +108,18 @@ This will create a new index in `indexes/repo-name/` which will automatically ap
 
 ## Discord Bot (Optional)
 
-The Discord listener in `listeners/` can still be used independently:
+The Discord listener in `server/listeners/` can be used independently:
 
 ```bash
+cd server
+source venv/bin/activate
+
 # Set environment variables
 export DISCORD_BOT_TOKEN=your-token
-export INDEX_DIR=./indexes/gateway-service
+export INDEX_DIR=../indexes/gateway-service
 
 # Run the bot
-PYTHONPATH=./server python listeners/discord_listener.py
+python listeners/discord_listener.py
 ```
 
 ## Troubleshooting

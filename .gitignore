@@ -1,16 +1,16 @@
 # Python
-.venv/
 __pycache__/
 *.py[cod]
 *.egg-info/
 dist/
 build/
 *.so
+*venv/
 
 # macOS
 .DS_Store
 
-# Generated indexes
+# Generated indexes (runtime data)
 indexes/
 
 # Prompts history (runtime data)
@@ -26,8 +26,9 @@ prompts_history/
 # Environment variables
 .env
 .env.local
+
+# Claude Code
 .claude/
-.venv/
-*venv/
-/server/venv/
-/client/node_modules/
+
+# Node
+node_modules/

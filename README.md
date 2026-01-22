@@ -17,7 +17,7 @@ A smart Q&A system for code repositories using LlamaIndex and Ollama. Automatica
 
 - Python 3.9+
 - [Ollama](https://ollama.ai) running locally
-- Ollama models pulled: `nomic-embed-text` and `qwen2.5:14b-instruct` (or configure different models in [config.py](config.py))
+- Ollama models pulled: `nomic-embed-text` and `qwen2.5:14b-instruct` (or configure different models in [server/config.py](server/config.py))
 
 ## Installation
 
@@ -26,7 +26,10 @@ A smart Q&A system for code repositories using LlamaIndex and Ollama. Automatica
 git clone <your-repo-url>
 cd REPO-QA
 
-# Install dependencies
+# Install backend dependencies
+cd server
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
 # Verify Ollama is running
@@ -57,7 +60,7 @@ The system will:
 
 ## Configuration
 
-Edit [config.py](config.py) to customize:
+Edit [server/config.py](server/config.py) to customize:
 
 - `OLLAMA_BASE_URL` - Ollama server URL (default: `http://localhost:11434`)
 - `EMBEDDING_MODEL` - Model for embeddings (default: `nomic-embed-text`)
@@ -70,7 +73,7 @@ Edit [config.py](config.py) to customize:
 
 ### Question Routing
 
-The router ([prompts/router.py](prompts/router.py)) uses an LLM to classify questions with confidence scoring. Questions are routed based on intent and confidence threshold.
+The router ([server/prompts/router.py](server/prompts/router.py)) uses an LLM to classify questions with confidence scoring. Questions are routed based on intent and confidence threshold.
 
 ### Authoritative Sources
 
@@ -95,19 +98,25 @@ Uses ChromaDB to:
 
 ```
 REPO-QA/
-├── config.py                    # Configuration settings
-├── requirements.txt             # Python dependencies
-├── indexing/
-│   └── index_repo.py           # Repository indexing logic
-├── prompts/
-│   ├── ask.py                  # Main Q&A entry point
-│   ├── router.py               # Question classification
-│   ├── authoritative_sources.py # DOCUMENTATION.md/Swagger loading
-│   ├── prompt_templates.py     # Mode-specific prompts
-│   └── filters.py              # Post-processors for search results
+├── server/                      # Backend (source of truth)
+│   ├── config.py               # Configuration settings
+│   ├── requirements.txt        # Python dependencies
+│   ├── main.py                 # FastAPI entry point
+│   ├── indexing/
+│   │   └── index_repo.py       # Repository indexing logic
+│   ├── prompts/
+│   │   ├── ask.py              # Main Q&A entry point
+│   │   ├── router.py           # Question classification
+│   │   ├── authoritative_sources.py
+│   │   ├── prompt_templates.py
+│   │   └── filters.py
+│   └── listeners/              # Discord bot (optional)
+│       └── discord_listener.py
+├── client/                      # React + Vite frontend
+│   └── src/
 ├── scripts/
-│   ├── execute_index.sh        # Index a repository
-│   └── execute_ask.sh          # Ask a question
+│   ├── execute_index.sh        # CLI: Index a repository
+│   └── execute_ask.sh          # CLI: Ask a question
 └── indexes/                     # Generated vector indexes (gitignored)
 ```
 
