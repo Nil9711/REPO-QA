@@ -71,8 +71,8 @@ curl http://localhost:11434
 # Start the service
 docker-compose up -d
 
-# First time: pull Ollama models (takes a few minutes)
-docker-compose exec ollama ollama pull nomic-embed-text
+# The embedding model (nomic-embed-text) is pulled automatically
+# For LLM, pull manually if using Ollama for generation:
 docker-compose exec ollama ollama pull qwen2.5:14b-instruct
 
 # View logs
