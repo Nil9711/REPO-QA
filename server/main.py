@@ -8,7 +8,7 @@ from pydantic import BaseModel
 # Add server directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from prompts.ask import build_query_engine, route_question, query_with_mode, deduplicate_sources
+from prompts.ask import build_query_engine, route_question, query_with_mode, deduplicate_sources, save_prompt_history
 
 app = FastAPI(title="REPO-QA API")
 
@@ -74,6 +74,8 @@ def ask(request: AskRequest):
         qe, collection = build_query_engine(str(index_path))
         answer, sources = query_with_mode(qe, collection, request.question, mode)
         sources = deduplicate_sources(sources)
+
+        save_prompt_history(request.question, answer, sources, str(index_path), mode, confidence)
 
         return AskResponse(
             answer=answer,

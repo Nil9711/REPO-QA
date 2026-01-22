@@ -60,11 +60,42 @@ The system will:
 
 ## Configuration
 
-Edit [server/config.py](server/config.py) to customize:
+Copy `.env.example` to `.env` and configure:
+
+### LLM Provider (MODE)
+
+The system supports three LLM providers via the `MODE` environment variable:
+
+| MODE | Provider | Required Env Vars |
+|------|----------|-------------------|
+| `ollama` (default) | Local Ollama | `OLLAMA_BASE_URL`, `LLM_MODEL` |
+| `openai` | OpenAI API | `OPENAI_API_KEY`, `OPENAI_MODEL` |
+| `claude` | Anthropic Claude | `CLAUDE_API_KEY`, `CLAUDE_MODEL` |
+
+**Note:** Embeddings always use Ollama regardless of MODE.
+
+Example `.env` for OpenAI:
+```env
+MODE=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Example `.env` for Claude:
+```env
+MODE=claude
+CLAUDE_API_KEY=sk-ant-...
+CLAUDE_MODEL=claude-3-5-sonnet-20240620
+```
+
+### Other Settings
+
+Edit [server/config.py](server/config.py) or set via environment:
 
 - `OLLAMA_BASE_URL` - Ollama server URL (default: `http://localhost:11434`)
 - `EMBEDDING_MODEL` - Model for embeddings (default: `nomic-embed-text`)
-- `LLM_MODEL` - Model for answer generation (default: `qwen2.5:14b-instruct`)
+- `LLM_MODEL` - Ollama model for answer generation (default: `qwen2.5:14b-instruct`)
+- `LLM_TIMEOUT` - Request timeout in seconds (default: `120`)
 - `SIMILARITY_TOP_K` - Number of chunks to retrieve (default: 12)
 - `INDEXED_FILE_EXTENSIONS` - File types to index
 - `EXCLUDE_DIRS` - Directories to skip during indexing

@@ -11,6 +11,10 @@ llama-index-vector-stores-chroma
 llama-index-embeddings-ollama
 llama-index-llms-ollama
 
+# Remote LLM providers (optional, based on MODE)
+llama-index-llms-openai
+llama-index-llms-anthropic
+
 # Code parsing
 tree-sitter>=0.21.0,<0.22.0
 tree-sitter-languages>=1.10.0

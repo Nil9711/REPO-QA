@@ -12,13 +12,21 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 # Import from server package
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+GENERIC_RESPONSE = "I'm a repository Q&A assistant. Ask me questions about the codebase, such as:\n- What does this repository do?\n- What endpoints does this service expose?\n- How does the authentication work?"
+
 from config import (
+    MODE,
     OLLAMA_BASE_URL,
     EMBEDDING_MODEL,
     LLM_MODEL,
     LLM_TIMEOUT,
     SIMILARITY_TOP_K,
     ROUTER_CONFIDENCE_THRESHOLD,
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
+    OPENAI_BASE_URL,
+    CLAUDE_API_KEY,
+    CLAUDE_MODEL,
 )
 from .filters import ExcludeDeploymentFilesPostprocessor
 from .router import QuestionRouter
@@ -26,17 +34,51 @@ from .authoritative_sources import get_authoritative_context
 from .prompt_templates import get_prompt_template
 
 
+def get_llm():
+    """Get LLM instance based on MODE setting."""
+    if MODE == "openai":
+        if not OPENAI_API_KEY:
+            raise ValueError("MODE=openai but OPENAI_API_KEY is not set")
+        from llama_index.llms.openai import OpenAI
+        kwargs = {
+            "model": OPENAI_MODEL,
+            "api_key": OPENAI_API_KEY,
+            "timeout": LLM_TIMEOUT,
+        }
+        if OPENAI_BASE_URL:
+            kwargs["api_base"] = OPENAI_BASE_URL
+        return OpenAI(**kwargs)
+
+    elif MODE == "claude":
+        if not CLAUDE_API_KEY:
+            raise ValueError("MODE=claude but CLAUDE_API_KEY is not set")
+        from llama_index.llms.anthropic import Anthropic
+        return Anthropic(
+            model=CLAUDE_MODEL,
+            api_key=CLAUDE_API_KEY,
+            timeout=LLM_TIMEOUT,
+        )
+
+    elif MODE == "ollama":
+        return Ollama(
+            model=LLM_MODEL,
+            base_url=OLLAMA_BASE_URL,
+            request_timeout=LLM_TIMEOUT,
+        )
+
+    else:
+        raise ValueError(f"Unknown MODE: {MODE}. Use 'ollama', 'openai', or 'claude'.")
+
+
 def build_query_engine(index_dir: str):
+    # Embeddings always use Ollama
     Settings.embed_model = OllamaEmbedding(
         model_name=EMBEDDING_MODEL,
         base_url=OLLAMA_BASE_URL,
     )
 
-    Settings.llm = Ollama(
-        model=LLM_MODEL,
-        base_url=OLLAMA_BASE_URL,
-        request_timeout=LLM_TIMEOUT,
-    )
+    # LLM based on MODE
+    Settings.llm = get_llm()
 
     chroma_client = chromadb.PersistentClient(path=index_dir)
     collection = chroma_client.get_or_create_collection("repo_chunks")
@@ -61,6 +103,9 @@ def route_question(question: str) -> tuple[str, float]:
     router = QuestionRouter()
     intent_type, confidence = router.classify_question(question)
 
+    if intent_type == "generic":
+        return "generic", confidence
+
     if intent_type in ["repo_overview", "api_endpoints"] and confidence >= ROUTER_CONFIDENCE_THRESHOLD:
         mode = intent_type
     else:
@@ -70,6 +115,9 @@ def route_question(question: str) -> tuple[str, float]:
 
 
 def query_with_mode(query_engine, collection, question: str, mode: str) -> tuple[str, list]:
+    if mode == "generic":
+        return GENERIC_RESPONSE, []
+
     authoritative_context, authoritative_sources = get_authoritative_context(mode, collection)
 
     if mode == "deep_dive":
