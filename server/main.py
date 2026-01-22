@@ -16,13 +16,38 @@ app = FastAPI(title="REPO-QA API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Path to indexes directory (relative to server/)
 INDEXES_DIR = Path(__file__).parent.parent / "indexes"
+
+
+def get_index_path(index_name: str) -> Path:
+    """Validate index name and return a safe path under INDEXES_DIR."""
+    name = (index_name or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Index name is required")
+
+    candidate = Path(name)
+    if candidate.is_absolute() or ".." in candidate.parts or candidate.name != name:
+        raise HTTPException(status_code=400, detail="Invalid index name")
+
+    index_path = (INDEXES_DIR / name).resolve()
+    try:
+        index_path.relative_to(INDEXES_DIR.resolve())
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Invalid index path") from exc
+
+    if not index_path.exists():
+        raise HTTPException(status_code=404, detail=f"Index '{name}' not found")
+
+    if not (index_path / "chroma.sqlite3").exists():
+        raise HTTPException(status_code=404, detail=f"Index '{name}' not found")
+
+    return index_path
 
 
 class AskRequest(BaseModel):
@@ -39,7 +64,6 @@ class AskResponse(BaseModel):
 
 class IndexInfo(BaseModel):
     name: str
-    path: str
 
 
 @app.get("/indexes", response_model=list[IndexInfo])
@@ -53,7 +77,7 @@ def list_indexes():
         if item.is_dir() and not item.name.startswith("."):
             # Check if it has ChromaDB files (chroma.sqlite3)
             if (item / "chroma.sqlite3").exists():
-                indexes.append(IndexInfo(name=item.name, path=str(item)))
+                indexes.append(IndexInfo(name=item.name))
 
     return indexes
 
@@ -61,10 +85,7 @@ def list_indexes():
 @app.post("/ask", response_model=AskResponse)
 def ask(request: AskRequest):
     """Ask a question about a repository."""
-    index_path = INDEXES_DIR / request.index
-
-    if not index_path.exists():
-        raise HTTPException(status_code=404, detail=f"Index '{request.index}' not found")
+    index_path = get_index_path(request.index)
 
     try:
         # Route the question
@@ -84,7 +105,7 @@ def ask(request: AskRequest):
             confidence=confidence
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/health")

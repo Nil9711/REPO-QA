@@ -2,7 +2,6 @@ const API_BASE = 'http://localhost:8000';
 
 export type IndexInfo = {
   name: string;
-  path: string;
 }
 
 export type AskResponse = {
