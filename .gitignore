@@ -27,3 +27,7 @@ prompts_history/
 .env
 .env.local
 .claude/
+.venv/
+*venv/
+/server/venv/
+/client/node_modules/
