@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config import OLLAMA_BASE_URL, ROUTER_MODEL
 
 
-QuestionIntent = Literal["repo_overview", "api_endpoints", "deep_dive"]
+QuestionIntent = Literal["repo_overview", "api_endpoints", "deep_dive", "generic"]
 
 
 class QuestionRouter:
@@ -18,7 +18,17 @@ class QuestionRouter:
     ROUTER_PROMPT = """You are a question classifier for a repository Q&A system.
 Classify the user's question into ONE of these intents:
 
-1. "repo_overview" - Questions about what the repository does, its purpose, responsibilities, or what it's in charge of
+1. "generic" - Greetings, small talk, or questions NOT related to any codebase
+   Examples:
+   - "Hello", "Hi", "Hey"
+   - "How are you?"
+   - "What's up?"
+   - "Who are you?"
+   - "Thanks", "Bye"
+   - "What is the weather?"
+   - Any question not about code or a repository
+
+2. "repo_overview" - Questions about what the repository does, its purpose, responsibilities, or what it's in charge of
    Examples:
    - "What does this repository do?"
    - "What is this repo in charge of?"
@@ -26,14 +36,14 @@ Classify the user's question into ONE of these intents:
    - "What are the responsibilities of this system?"
    - "What is the purpose of this codebase?"
 
-2. "api_endpoints" - Questions about API routes, endpoints, request/response schemas
+3. "api_endpoints" - Questions about API routes, endpoints, request/response schemas
    Examples:
    - "What endpoints does this service expose?"
    - "List all API routes"
    - "What are the available REST endpoints?"
    - "Show me the API documentation"
 
-3. "deep_dive" - Specific questions about modules, functions, bugs, implementation details
+4. "deep_dive" - Specific questions about modules, functions, bugs, implementation details
    Examples:
    - "How does the authentication module work?"
    - "Where is the login function defined?"
@@ -42,7 +52,7 @@ Classify the user's question into ONE of these intents:
 
 Respond with ONLY valid JSON in this exact format:
 {{
-  "type": "repo_overview" | "api_endpoints" | "deep_dive",
+  "type": "generic" | "repo_overview" | "api_endpoints" | "deep_dive",
   "confidence": 0.0-1.0
 }}
 
@@ -76,7 +86,7 @@ JSON Response:"""
             intent_type = result.get("type", "deep_dive")
             confidence = float(result.get("confidence", 0.5))
 
-            if intent_type not in ["repo_overview", "api_endpoints", "deep_dive"]:
+            if intent_type not in ["generic", "repo_overview", "api_endpoints", "deep_dive"]:
                 intent_type = "deep_dive"
 
             confidence = max(0.0, min(1.0, confidence))

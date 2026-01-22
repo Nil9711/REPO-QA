@@ -17,7 +17,7 @@ A smart Q&A system for code repositories using LlamaIndex and Ollama. Automatica
 
 - Python 3.9+
 - [Ollama](https://ollama.ai) running locally
-- Ollama models pulled: `nomic-embed-text` and `qwen2.5:14b-instruct` (or configure different models in [config.py](config.py))
+- Ollama models pulled: `nomic-embed-text` and `qwen2.5:14b-instruct` (or configure different models in [server/config.py](server/config.py))
 
 ## Installation
 
@@ -26,7 +26,10 @@ A smart Q&A system for code repositories using LlamaIndex and Ollama. Automatica
 git clone <your-repo-url>
 cd REPO-QA
 
-# Install dependencies
+# Install backend dependencies
+cd server
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
 # Verify Ollama is running
@@ -57,11 +60,42 @@ The system will:
 
 ## Configuration
 
-Edit [config.py](config.py) to customize:
+Copy `.env.example` to `.env` and configure:
+
+### LLM Provider (MODE)
+
+The system supports three LLM providers via the `MODE` environment variable:
+
+| MODE | Provider | Required Env Vars |
+|------|----------|-------------------|
+| `ollama` (default) | Local Ollama | `OLLAMA_BASE_URL`, `LLM_MODEL` |
+| `openai` | OpenAI API | `OPENAI_API_KEY`, `OPENAI_MODEL` |
+| `claude` | Anthropic Claude | `CLAUDE_API_KEY`, `CLAUDE_MODEL` |
+
+**Note:** Embeddings always use Ollama regardless of MODE.
+
+Example `.env` for OpenAI:
+```env
+MODE=openai
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+Example `.env` for Claude:
+```env
+MODE=claude
+CLAUDE_API_KEY=sk-ant-...
+CLAUDE_MODEL=claude-3-5-sonnet-20240620
+```
+
+### Other Settings
+
+Edit [server/config.py](server/config.py) or set via environment:
 
 - `OLLAMA_BASE_URL` - Ollama server URL (default: `http://localhost:11434`)
 - `EMBEDDING_MODEL` - Model for embeddings (default: `nomic-embed-text`)
-- `LLM_MODEL` - Model for answer generation (default: `qwen2.5:14b-instruct`)
+- `LLM_MODEL` - Ollama model for answer generation (default: `qwen2.5:14b-instruct`)
+- `LLM_TIMEOUT` - Request timeout in seconds (default: `120`)
 - `SIMILARITY_TOP_K` - Number of chunks to retrieve (default: 12)
 - `INDEXED_FILE_EXTENSIONS` - File types to index
 - `EXCLUDE_DIRS` - Directories to skip during indexing
@@ -70,7 +104,7 @@ Edit [config.py](config.py) to customize:
 
 ### Question Routing
 
-The router ([prompts/router.py](prompts/router.py)) uses an LLM to classify questions with confidence scoring. Questions are routed based on intent and confidence threshold.
+The router ([server/prompts/router.py](server/prompts/router.py)) uses an LLM to classify questions with confidence scoring. Questions are routed based on intent and confidence threshold.
 
 ### Authoritative Sources
 
@@ -95,19 +129,25 @@ Uses ChromaDB to:
 
 ```
 REPO-QA/
-├── config.py                    # Configuration settings
-├── requirements.txt             # Python dependencies
-├── indexing/
-│   └── index_repo.py           # Repository indexing logic
-├── prompts/
-│   ├── ask.py                  # Main Q&A entry point
-│   ├── router.py               # Question classification
-│   ├── authoritative_sources.py # DOCUMENTATION.md/Swagger loading
-│   ├── prompt_templates.py     # Mode-specific prompts
-│   └── filters.py              # Post-processors for search results
+├── server/                      # Backend (source of truth)
+│   ├── config.py               # Configuration settings
+│   ├── requirements.txt        # Python dependencies
+│   ├── main.py                 # FastAPI entry point
+│   ├── indexing/
+│   │   └── index_repo.py       # Repository indexing logic
+│   ├── prompts/
+│   │   ├── ask.py              # Main Q&A entry point
+│   │   ├── router.py           # Question classification
+│   │   ├── authoritative_sources.py
+│   │   ├── prompt_templates.py
+│   │   └── filters.py
+│   └── listeners/              # Discord bot (optional)
+│       └── discord_listener.py
+├── client/                      # React + Vite frontend
+│   └── src/
 ├── scripts/
-│   ├── execute_index.sh        # Index a repository
-│   └── execute_ask.sh          # Ask a question
+│   ├── execute_index.sh        # CLI: Index a repository
+│   └── execute_ask.sh          # CLI: Ask a question
 └── indexes/                     # Generated vector indexes (gitignored)
 ```
 
