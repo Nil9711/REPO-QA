@@ -3,6 +3,8 @@ import sys
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 # Add server directory to path
@@ -23,6 +25,9 @@ app.add_middleware(
 
 # Path to indexes directory (relative to server/)
 INDEXES_DIR = Path(__file__).parent.parent / "indexes"
+
+# Path to client build directory
+CLIENT_BUILD_DIR = Path(__file__).parent.parent / "client" / "dist"
 
 
 def get_index_path(index_name: str) -> Path:
@@ -105,10 +110,39 @@ def ask(request: AskRequest):
             confidence=confidence
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        import traceback
+        error_detail = f"{type(e).__name__}: {str(e)}"
+        print(f"Error in /ask: {error_detail}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @app.get("/health")
 def health():
     """Health check endpoint."""
     return {"status": "ok"}
+
+
+# Mount static files for client (if build exists)
+if CLIENT_BUILD_DIR.exists():
+    app.mount("/assets", StaticFiles(directory=str(CLIENT_BUILD_DIR / "assets")), name="assets")
+    
+    @app.get("/")
+    def serve_spa():
+        """Serve the SPA index.html for the root route."""
+        return FileResponse(str(CLIENT_BUILD_DIR / "index.html"))
+    
+    @app.get("/{full_path:path}")
+    def serve_spa_catchall(full_path: str):
+        """Catch-all route for SPA routing."""
+        # If it's an API route, let FastAPI handle it normally
+        if full_path.startswith(("api/", "ask", "indexes", "health")):
+            raise HTTPException(status_code=404, detail="Not found")
+        
+        # Check if file exists in build dir
+        file_path = CLIENT_BUILD_DIR / full_path
+        if file_path.is_file():
+            return FileResponse(str(file_path))
+        
+        # Otherwise serve index.html for client-side routing
+        return FileResponse(str(CLIENT_BUILD_DIR / "index.html"))

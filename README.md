@@ -15,11 +15,34 @@ A smart Q&A system for code repositories using LlamaIndex and Ollama. Automatica
 
 ## Prerequisites
 
+### For Docker (Recommended)
+- Docker and Docker Compose
+
+### For Local Development
 - Python 3.9+
+- Node.js 20+
 - [Ollama](https://ollama.ai) running locally
 - Ollama models pulled: `nomic-embed-text` and `qwen2.5:14b-instruct` (or configure different models in [server/config.py](server/config.py))
 
 ## Installation
+
+### Option 1: Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd REPO-QA
+
+# Create .env file (see Configuration section)
+cp .env.example .env
+
+# Build and run with docker-compose
+docker-compose up -d
+
+# Access the app at http://localhost:8000
+```
+
+### Option 2: Local Development
 
 ```bash
 # Clone the repository
@@ -32,13 +55,38 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
+# Install frontend dependencies
+cd ../client
+npm install
+
 # Verify Ollama is running
 curl http://localhost:11434
 ```
 
 ## Usage
 
-### 1. Index a Repository
+### Docker Usage
+
+```bash
+# Start the service
+docker-compose up -d
+
+# First time: pull Ollama models (takes a few minutes)
+docker-compose exec ollama ollama pull nomic-embed-text
+docker-compose exec ollama ollama pull qwen2.5:14b-instruct
+
+# View logs
+docker-compose logs -f
+
+# Stop the service
+docker-compose down
+
+# Access the web UI at http://localhost:8000
+```
+
+### CLI Usage (Local Development)
+
+#### 1. Index a Repository
 
 ```bash
 sh scripts/execute_index.sh /path/to/repo repo-name
@@ -46,7 +94,7 @@ sh scripts/execute_index.sh /path/to/repo repo-name
 
 This creates an index in `./indexes/repo-name/` containing vector embeddings of all code files.
 
-### 2. Ask Questions
+#### 2. Ask Questions
 
 ```bash
 sh scripts/execute_ask.sh repo-name "What does this repository do?"
@@ -60,7 +108,7 @@ The system will:
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure:
+Create a `.env` file in the root directory:
 
 ### LLM Provider (MODE)
 
@@ -99,6 +147,16 @@ Edit [server/config.py](server/config.py) or set via environment:
 - `SIMILARITY_TOP_K` - Number of chunks to retrieve (default: 12)
 - `INDEXED_FILE_EXTENSIONS` - File types to index
 - `EXCLUDE_DIRS` - Directories to skip during indexing
+
+### Docker Notes
+
+When running with Docker:
+- Ollama runs as a separate service using the official `ollama/ollama` image
+- The `indexes/` directory is mounted as a volume for persistence
+- Ollama models are stored in a Docker volume (`ollama_models`) for persistence
+- Pull models once after first run (see commands above)
+- The web UI and API are served on port 8000
+- Ollama API is accessible on port 11434
 
 ## How It Works
 
