@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Python
+.venv
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+
+# Node
+ui/node_modules
+ui/dist
+
+# IDE
+.vscode
+.idea
+
+# Environment
+.env
+.env.local
+
+# History (optional - remove if you want history included)
+prompts_history
+
+# Documentation
+*.md
+!README.md

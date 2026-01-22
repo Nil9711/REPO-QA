@@ -1,9 +1,11 @@
-OLLAMA_BASE_URL = "http://localhost:11434"
-EMBEDDING_MODEL = "nomic-embed-text"
-LLM_MODEL = "qwen2.5:14b-instruct"
-LLM_TIMEOUT = 120.0
+import os
 
-SIMILARITY_TOP_K = 12
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+LLM_MODEL = os.getenv("LLM_MODEL", "qwen2.5:14b-instruct")
+LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "120.0"))
+
+SIMILARITY_TOP_K = int(os.getenv("SIMILARITY_TOP_K", "12"))
 
 EXCLUDE_DIRS = {".git", "node_modules", "dist", "build", ".next", ".venv", "__pycache__"}
 INDEXED_FILE_EXTENSIONS = {".ts", ".tsx", ".md", ".json"}
@@ -49,5 +51,5 @@ DEPLOYMENT_FILE_PATTERNS = [
     'templates/',
 ]
 
-ROUTER_CONFIDENCE_THRESHOLD = 0.7
+ROUTER_CONFIDENCE_THRESHOLD = float(os.getenv("ROUTER_CONFIDENCE_THRESHOLD", "0.7"))
 ROUTER_MODEL = LLM_MODEL

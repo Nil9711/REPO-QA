@@ -27,3 +27,4 @@ prompts_history/
 .env
 .env.local
 .claude/
+node_modules/
