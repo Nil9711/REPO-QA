@@ -1,4 +1,6 @@
-const API_BASE = 'http://localhost:8000';
+// Use empty string for API_BASE so requests are relative to current origin
+// Nginx will proxy these to the backend service
+const API_BASE = '';
 
 export type IndexInfo = {
   name: string;

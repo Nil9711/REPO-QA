@@ -30,20 +30,31 @@ services:
         echo "Models pulled successfully"
     restart: "no"
 
-  repo-qa:
+  backend:
     build:
-      context: .
+      context: ./server
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
       - ./indexes:/app/indexes
     env_file:
-      - .env
+      - ./server/.env
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
+      - INDEXES_DIR=/app/indexes
     depends_on:
       - ollama
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
     restart: unless-stopped
 
 volumes:
