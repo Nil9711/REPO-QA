@@ -7,7 +7,16 @@ from llama_index.llms.ollama import Ollama
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import OLLAMA_BASE_URL, ROUTER_MODEL
+from config import (
+    MODE,
+    OLLAMA_BASE_URL,
+    ROUTER_MODEL,
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
+    OPENAI_BASE_URL,
+    CLAUDE_API_KEY,
+    CLAUDE_MODEL,
+)
 
 
 QuestionIntent = Literal["repo_overview", "api_endpoints", "deep_dive", "generic"]
@@ -61,11 +70,36 @@ Question: {question}
 JSON Response:"""
 
     def __init__(self):
-        self.llm = Ollama(
-            model=ROUTER_MODEL,
-            base_url=OLLAMA_BASE_URL,
-            request_timeout=30.0,
-        )
+        """Initialize router with LLM based on MODE setting."""
+        if MODE == "openai":
+            if not OPENAI_API_KEY:
+                raise ValueError("MODE=openai but OPENAI_API_KEY is not set")
+            from llama_index.llms.openai import OpenAI
+            kwargs = {
+                "model": OPENAI_MODEL,
+                "api_key": OPENAI_API_KEY,
+                "timeout": 30.0,
+            }
+            if OPENAI_BASE_URL:
+                kwargs["api_base"] = OPENAI_BASE_URL
+            self.llm = OpenAI(**kwargs)
+
+        elif MODE == "claude":
+            if not CLAUDE_API_KEY:
+                raise ValueError("MODE=claude but CLAUDE_API_KEY is not set")
+            from llama_index.llms.anthropic import Anthropic
+            self.llm = Anthropic(
+                model=CLAUDE_MODEL,
+                api_key=CLAUDE_API_KEY,
+                timeout=30.0,
+            )
+
+        else:  # MODE == "ollama" or default
+            self.llm = Ollama(
+                model=ROUTER_MODEL,
+                base_url=OLLAMA_BASE_URL,
+                request_timeout=30.0,
+            )
 
     def classify_question(self, question: str) -> tuple[QuestionIntent, float]:
         prompt = self.ROUTER_PROMPT.format(question=question)

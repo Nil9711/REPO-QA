@@ -1,6 +1,7 @@
 // Use empty string for API_BASE so requests are relative to current origin
 // Nginx will proxy these to the backend service
-const API_BASE = '';
+// For local development, point to backend port
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8000' : '';
 
 export type IndexInfo = {
   name: string;
